@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Arnis Scoreboard</title>
   <style>
     :root {
@@ -949,17 +952,18 @@
       matchFinished: false
     };
 
+    const assetVersion = Date.now();
     const collegeLogos = {
-      CAF: './college-assets/CAF.png',
-      CAS: './college-assets/CAS.jpg',
-      CBM: './college-assets/CBM.jpg',
-      CED: './college-assets/CED.jpg',
-      CET: './college-assets/CET.jpg',
-      CVM: './college-assets/CVM.jpg',
-      CVVM: './college-assets/CVM.jpg'
+      CAF: './college-assets/CAF.png?v=' + assetVersion,
+      CAS: './college-assets/CAS.jpg?v=' + assetVersion,
+      CBM: './college-assets/CBM.jpg?v=' + assetVersion,
+      CED: './college-assets/CED.jpg?v=' + assetVersion,
+      CET: './college-assets/CET.jpg?v=' + assetVersion,
+      CVM: './college-assets/CVM.jpg?v=' + assetVersion,
+      CVVM: './college-assets/CVM.jpg?v=' + assetVersion
     };
 
-    const winnerVideoPath = './79a2d1ca-e962-44ae-b2b0-de6a85f4be12.mp4';
+    const winnerVideoPath = './79a2d1ca-e962-44ae-b2b0-de6a85f4be12.mp4?v=' + assetVersion;
     const cvmFallbackLogo = '';
     const elements = {};
 
