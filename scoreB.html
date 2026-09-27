@@ -960,7 +960,7 @@
     };
 
     const winnerVideoPath = './79a2d1ca-e962-44ae-b2b0-de6a85f4be12.mp4';
-    const cvmFallbackLogo = './college-assets/CVM.jpg';
+    const cvmFallbackLogo = '';
     const elements = {};
 
     function cacheElements() {
@@ -1055,7 +1055,7 @@
         video.loop = true;
         video.controls = false;
         video.preload = 'auto';
-        video.poster = cvmFallbackLogo;
+        video.poster = '';
         video.className = 'winner-cvm-video';
         video.setAttribute('playsinline', 'true');
 
@@ -1063,14 +1063,14 @@
         if (existingVideo) existingVideo.remove();
 
         logoWrap.appendChild(video);
-        logo.src = cvmFallbackLogo;
+        logo.removeAttribute('src');
         logo.style.display = 'none';
         logo.classList.add('is-cvm');
         logoWrap.classList.add('is-cvm');
 
         video.play().catch(() => {
-          logo.src = cvmFallbackLogo;
-          logo.style.display = 'block';
+          logo.removeAttribute('src');
+          logo.style.display = 'none';
           logo.classList.add('is-cvm');
           video.style.display = 'none';
         });
