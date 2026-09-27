@@ -928,7 +928,12 @@
   </main>
 
   <script>
-    const scores = { red: 0, blue: 0 };
+    const state = {
+      scores: { red: 0, blue: 0 },
+      secondsLeft: 180,
+      timerId: null,
+      matchFinished: false
+    };
 
     const collegeLogos = {
       CAF: './college-assets/CAF.png',
@@ -940,38 +945,45 @@
       CVVM: './college-assets/CVM.jpg'
     };
 
-    let secondsLeft = 180;
-    let timer = null;
-    let matchFinished = false;
     const winnerVideoPath = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
     const cvmVideoPath = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
+    const elements = {};
+
+    function cacheElements() {
+      elements.redScore = document.getElementById('redScore');
+      elements.blueScore = document.getElementById('blueScore');
+      elements.redCollege = document.getElementById('redCollege');
+      elements.blueCollege = document.getElementById('blueCollege');
+      elements.redPhoto = document.getElementById('redPhoto');
+      elements.bluePhoto = document.getElementById('bluePhoto');
+      elements.redAdvantage = document.getElementById('redAdvantage');
+      elements.blueAdvantage = document.getElementById('blueAdvantage');
+      elements.clock = document.getElementById('clock');
+      elements.timerMinutes = document.getElementById('timerMinutes');
+      elements.timerSeconds = document.getElementById('timerSeconds');
+      elements.winnerOverlay = document.getElementById('winnerVideoOverlay');
+      elements.winnerTitle = document.getElementById('winnerTitle');
+      elements.winnerName = document.getElementById('winnerName');
+      elements.winnerScore = document.getElementById('winnerScore');
+      elements.winnerHeroLogo = document.getElementById('winnerHeroLogo');
+    }
+
     function getWinnerByScore() {
-      if (scores.red === scores.blue) return 'draw';
-      return scores.red > scores.blue ? 'red' : 'blue';
+      if (state.scores.red === state.scores.blue) return 'draw';
+      return state.scores.red > state.scores.blue ? 'red' : 'blue';
     }
 
     function getCurrentWinner() {
-      if (scores.red >= 7 || scores.blue >= 7) {
-        return scores.red === scores.blue ? 'draw' : scores.red > scores.blue ? 'red' : 'blue';
+      if (state.scores.red >= 7 || state.scores.blue >= 7) {
+        return state.scores.red === state.scores.blue ? 'draw' : state.scores.red > state.scores.blue ? 'red' : 'blue';
       }
       return null;
     }
 
-    function handleMatchEnd() {
-      if (matchFinished) return;
-      matchFinished = true;
-      pauseTimer();
-      updateScoreButtonsState();
-
-      const result = getWinnerByScore();
-      const titleEl = document.getElementById('winnerTitle');
-      if (result === 'draw') {
-        titleEl.textContent = 'DRAW';
-      } else {
-        titleEl.textContent = 'WINNER!';
-      }
-      showWinnerOverlay(true);
+    function renderScores() {
+      elements.redScore.textContent = state.scores.red;
+      elements.blueScore.textContent = state.scores.blue;
     }
 
     function getTeamDisplayName(team) {
@@ -982,37 +994,31 @@
 
     function updateWinnerOverlayInfo() {
       const result = getWinnerByScore();
-      const nameEl = document.getElementById('winnerName');
-      const scoreEl = document.getElementById('winnerScore');
-      const titleEl = document.getElementById('winnerTitle');
-
       if (result === 'draw') {
-        titleEl.textContent = 'DRAW';
-        nameEl.textContent = 'TIE';
-        scoreEl.textContent = 'Final Score: ' + scores.red + ' - ' + scores.blue;
+        elements.winnerTitle.textContent = 'DRAW';
+        elements.winnerName.textContent = 'TIE';
+        elements.winnerScore.textContent = 'Final Score: ' + state.scores.red + ' - ' + state.scores.blue;
         return;
       }
 
-      const winnerName = getTeamDisplayName(result);
-      titleEl.textContent = 'WINNER!';
-      nameEl.textContent = winnerName;
-      scoreEl.textContent = 'Final Score: ' + scores.red + ' - ' + scores.blue;
-      nameEl.setAttribute('data-team', result === 'red' ? 'Red' : 'Blue');
+      elements.winnerTitle.textContent = 'WINNER!';
+      elements.winnerName.textContent = getTeamDisplayName(result);
+      elements.winnerScore.textContent = 'Final Score: ' + state.scores.red + ' - ' + state.scores.blue;
     }
 
     function revealWinnerIfNeeded(force = false) {
       const winner = getCurrentWinner();
       const result = getWinnerByScore();
-      const overlay = document.getElementById('winnerVideoOverlay');
-      const logo = document.getElementById('winnerHeroLogo');
-      const logoWrap = logo.parentElement;
+      const overlay = elements.winnerOverlay;
+      const logo = elements.winnerHeroLogo;
+      const logoWrap = logo && logo.parentElement;
 
-      if (!winner && !force) {
-        overlay.classList.remove('show');
+      if ((!winner && !force) || !overlay || !logo || !logoWrap) {
+        overlay && overlay.classList.remove('show');
         return;
       }
 
-      if (!force && Math.abs(scores.red - scores.blue) < 7) {
+      if (!force && Math.abs(state.scores.red - state.scores.blue) < 7) {
         overlay.classList.remove('show');
         return;
       }
@@ -1020,7 +1026,7 @@
       updateWinnerOverlayInfo();
 
       const winningTeam = result === 'draw' ? 'red' : result;
-      const code = (document.getElementById(winningTeam + 'College').value || '').trim().toUpperCase() || (winningTeam === 'red' ? 'RED' : 'BLUE');
+      const code = ((elements[winningTeam + 'College'] && elements[winningTeam + 'College'].value) || '').trim().toUpperCase() || (winningTeam === 'red' ? 'RED' : 'BLUE');
       const src = collegeLogos[code] || collegeLogos.CET;
       logo.src = src;
       logo.alt = code + ' logo';
@@ -1061,8 +1067,8 @@
     }
 
     function updateTeamCollegeLogo(team) {
-      const input = document.getElementById(team + 'College');
-      const photo = document.getElementById(team + 'Photo');
+      const input = team === 'red' ? elements.redCollege : elements.blueCollege;
+      const photo = team === 'red' ? elements.redPhoto : elements.bluePhoto;
       const code = (input.value || '').trim().toUpperCase();
       const src = collegeLogos[code];
 
@@ -1078,42 +1084,45 @@
     }
 
     function updateAdvantageDisplay() {
-      const redBanner = document.getElementById('redAdvantage');
-      const blueBanner = document.getElementById('blueAdvantage');
+      const redBanner = elements.redAdvantage;
+      const blueBanner = elements.blueAdvantage;
 
       redBanner.style.display = 'none';
       blueBanner.style.display = 'none';
       redBanner.style.animation = 'none';
       blueBanner.style.animation = 'none';
 
-      if (scores.red > scores.blue) {
-        redBanner.textContent = (document.getElementById('redCollege').value || '').trim().toUpperCase() || 'RED';
+      if (state.scores.red > state.scores.blue) {
+        redBanner.textContent = (elements.redCollege.value || '').trim().toUpperCase() || 'RED';
         redBanner.style.display = 'block';
         redBanner.style.animation = 'slideInOut 3s ease-in-out forwards';
-      } else if (scores.blue > scores.red) {
-        blueBanner.textContent = (document.getElementById('blueCollege').value || '').trim().toUpperCase() || 'BLUE';
+      } else if (state.scores.blue > state.scores.red) {
+        blueBanner.textContent = (elements.blueCollege.value || '').trim().toUpperCase() || 'BLUE';
         blueBanner.style.display = 'block';
         blueBanner.style.animation = 'slideInOut 3s ease-in-out forwards';
       }
     }
 
-    function showWinnerOverlay(force = false) {
-      revealWinnerIfNeeded(force);
+    function handleMatchEnd() {
+      if (state.matchFinished) return;
+      state.matchFinished = true;
+      pauseTimer();
+      updateScoreButtonsState();
+      revealWinnerIfNeeded(true);
     }
 
     function renderTimer() {
-      const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
-      const seconds = String(secondsLeft % 60).padStart(2, '0');
-      document.getElementById('clock').textContent = minutes + ':' + seconds;
+      const minutes = String(Math.floor(state.secondsLeft / 60)).padStart(2, '0');
+      const seconds = String(state.secondsLeft % 60).padStart(2, '0');
+      elements.clock.textContent = minutes + ':' + seconds;
     }
 
     function updateScoreButtonsState() {
-      const redPlus = document.querySelector(".team.red button:first-of-type");
-      const redMinus = document.querySelector(".team.red .secondary");
-      const bluePlus = document.querySelector(".team.blue button:first-of-type");
-      const blueMinus = document.querySelector(".team.blue .secondary");
-
-      const disableAll = matchFinished || scores.red >= 7 || scores.blue >= 7;
+      const redPlus = document.querySelector('.team.red button:first-of-type');
+      const redMinus = document.querySelector('.team.red .secondary');
+      const bluePlus = document.querySelector('.team.blue button:first-of-type');
+      const blueMinus = document.querySelector('.team.blue .secondary');
+      const disableAll = state.matchFinished || state.scores.red >= 7 || state.scores.blue >= 7;
 
       if (redPlus) redPlus.disabled = disableAll;
       if (redMinus) redMinus.disabled = disableAll;
@@ -1122,113 +1131,112 @@
     }
 
     function finalizeMatchIfNeeded() {
-      if (matchFinished) return;
-
-      if (scores.red >= 7 || scores.blue >= 7) {
+      if (state.matchFinished) return;
+      if (state.scores.red >= 7 || state.scores.blue >= 7) {
         handleMatchEnd();
       }
     }
 
     function scorePoint(team, change) {
-      if (matchFinished) return;
+      if (state.matchFinished) return;
 
-      const nextValue = scores[team] + change;
-      if (nextValue < 0) {
-        return;
-      }
+      const nextValue = state.scores[team] + change;
+      if (nextValue < 0) return;
 
-      if (scores[team] >= 7) {
+      if (state.scores[team] >= 7) {
         handleMatchEnd();
         return;
       }
 
-      scores[team] = Math.min(7, nextValue);
-      document.getElementById(team + 'Score').textContent = scores[team];
+      state.scores[team] = Math.min(7, nextValue);
+      renderScores();
       updateAdvantageDisplay();
       updateScoreButtonsState();
-
       finalizeMatchIfNeeded();
-    }
-
-    function selectPhoto(event, id) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = document.createElement('img');
-        img.src = reader.result;
-        img.alt = 'Team photo';
-        const container = document.getElementById(id);
-        container.replaceChildren(img);
-      };
-      reader.readAsDataURL(file);
     }
 
     function setTimer() {
       pauseTimer();
-      matchFinished = false;
-      const minutes = Math.max(0, Number(document.getElementById('timerMinutes').value) || 0);
-      const seconds = Math.max(0, Math.min(59, Number(document.getElementById('timerSeconds').value) || 0));
-      secondsLeft = minutes * 60 + seconds;
-      document.getElementById('timerMinutes').value = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
-      document.getElementById('timerSeconds').value = String(secondsLeft % 60).padStart(2, '0');
+      state.matchFinished = false;
+      const minutes = Math.max(0, Number(elements.timerMinutes.value) || 0);
+      const seconds = Math.max(0, Math.min(59, Number(elements.timerSeconds.value) || 0));
+      state.secondsLeft = minutes * 60 + seconds;
+      elements.timerMinutes.value = String(Math.floor(state.secondsLeft / 60)).padStart(2, '0');
+      elements.timerSeconds.value = String(state.secondsLeft % 60).padStart(2, '0');
       renderTimer();
-    }
-
-    function endMatchByTime() {
-      if (matchFinished) return;
-      handleMatchEnd();
+      updateScoreButtonsState();
     }
 
     function startTimer() {
-      if (matchFinished || timer !== null || secondsLeft <= 0) return;
-      timer = setInterval(() => {
-        secondsLeft = Math.max(0, secondsLeft - 1);
+      if (state.matchFinished || state.timerId !== null || state.secondsLeft <= 0) return;
+      state.timerId = setInterval(() => {
+        state.secondsLeft = Math.max(0, state.secondsLeft - 1);
         renderTimer();
 
-        if (secondsLeft === 0) {
-          endMatchByTime();
+        if (state.secondsLeft === 0) {
+          pauseTimer();
+          handleMatchEnd();
         }
       }, 1000);
     }
 
     function pauseTimer() {
-      clearInterval(timer);
-      timer = null;
+      if (state.timerId !== null) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
     }
 
     function resetTimer() {
       pauseTimer();
-      matchFinished = false;
-      const minutes = Number(document.getElementById('timerMinutes').value) || 2;
-      const seconds = Number(document.getElementById('timerSeconds').value) || 0;
-      secondsLeft = Math.max(0, minutes * 60 + seconds);
+      state.matchFinished = false;
+      state.secondsLeft = 180;
+      elements.timerMinutes.value = '3';
+      elements.timerSeconds.value = '0';
       renderTimer();
+      updateScoreButtonsState();
     }
 
     function resetScores() {
       pauseTimer();
-      scores.red = 0;
-      scores.blue = 0;
-      matchFinished = false;
-      document.getElementById('redScore').textContent = '0';
-      document.getElementById('blueScore').textContent = '0';
-      document.getElementById('winnerVideoOverlay').classList.remove('show');
-      document.getElementById('winnerName').textContent = 'Winning Team';
-      document.getElementById('winnerScore').textContent = 'Final Score: 0 - 0';
-      document.getElementById('winnerTitle').textContent = 'WINNER!';
+      state.scores.red = 0;
+      state.scores.blue = 0;
+      state.matchFinished = false;
+      renderScores();
+      elements.winnerOverlay.classList.remove('show');
+      elements.winnerName.textContent = 'Winning Team';
+      elements.winnerScore.textContent = 'Final Score: 0 - 0';
+      elements.winnerTitle.textContent = 'WINNER!';
       updateAdvantageDisplay();
       updateScoreButtonsState();
     }
 
-    document.getElementById('redCollege').addEventListener('input', () => updateTeamCollegeLogo('red'));
-    document.getElementById('blueCollege').addEventListener('input', () => updateTeamCollegeLogo('blue'));
-    updateTeamCollegeLogo('red');
-    updateTeamCollegeLogo('blue');
-    updateAdvantageDisplay();
-    updateScoreButtonsState();
-    renderTimer();
+    function bindEvents() {
+      elements.redCollege.addEventListener('input', () => updateTeamCollegeLogo('red'));
+      elements.blueCollege.addEventListener('input', () => updateTeamCollegeLogo('blue'));
+      document.querySelector('.accent').addEventListener('click', setTimer);
+      document.querySelector('.team.red button:first-of-type').addEventListener('click', () => scorePoint('red', 1));
+      document.querySelector('.team.red .secondary').addEventListener('click', () => scorePoint('red', -1));
+      document.querySelector('.team.blue button:first-of-type').addEventListener('click', () => scorePoint('blue', 1));
+      document.querySelector('.team.blue .secondary').addEventListener('click', () => scorePoint('blue', -1));
+      document.querySelector('.timer-actions button:nth-of-type(2)').addEventListener('click', startTimer);
+      document.querySelector('.timer-actions button:nth-of-type(3)').addEventListener('click', pauseTimer);
+      document.querySelector('.timer-actions button:nth-of-type(4)').addEventListener('click', resetTimer);
+      document.querySelector('.reset-btn').addEventListener('click', resetScores);
+    }
+
+    function initApp() {
+      cacheElements();
+      bindEvents();
+      updateTeamCollegeLogo('red');
+      updateTeamCollegeLogo('blue');
+      renderScores();
+      renderTimer();
+      updateAdvantageDisplay();
+      updateScoreButtonsState();
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
