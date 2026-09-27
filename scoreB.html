@@ -597,6 +597,20 @@
       background: rgba(255,255,255,0.02);
       border: 3px solid rgba(250, 204, 21, 0.18);
       box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.04), inset 0 0 30px rgba(250, 204, 21, 0.06);
+      overflow: hidden;
+    }
+
+    .winner-cvm-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(250,204,21,0.18), rgba(15,23,42,0.7) 58%, #020617 100%);
+      z-index: 1;
     }
 
     .winner-video-overlay.show .winner-logo-wrap {
@@ -945,7 +959,8 @@
       CVVM: './college-assets/CVM.jpg'
     };
 
-    const winnerVideoPath = 'file:///C:/Users/Jomel/Downloads/tarlac_agricultural_university_3d_logo_animation.mp4';
+    const winnerVideoPath = './tarlac_agricultural_university_3d_logo_animation.mp4';
+    const cvmFallbackLogo = './college-assets/CVM.jpg';
     const elements = {};
 
     function cacheElements() {
@@ -1039,24 +1054,31 @@
         video.playsInline = true;
         video.loop = true;
         video.controls = false;
-        video.style.position = 'absolute';
-        video.style.inset = '0';
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.style.objectFit = 'cover';
-        video.style.zIndex = '0';
-        video.style.opacity = '1';
-        video.style.borderRadius = '0';
+        video.preload = 'auto';
+        video.poster = cvmFallbackLogo;
+        video.className = 'winner-cvm-video';
+        video.setAttribute('playsinline', 'true');
 
-        const existingVideo = overlay.querySelector('video');
+        const existingVideo = logoWrap.querySelector('video.winner-cvm-video');
         if (existingVideo) existingVideo.remove();
-        overlay.appendChild(video);
-        video.play().catch(() => {});
 
+        logoWrap.appendChild(video);
+        logo.src = cvmFallbackLogo;
         logo.style.display = 'none';
+        logo.classList.add('is-cvm');
+        logoWrap.classList.add('is-cvm');
+
+        video.play().catch(() => {
+          logo.src = cvmFallbackLogo;
+          logo.style.display = 'block';
+          logo.classList.add('is-cvm');
+          video.style.display = 'none';
+        });
       } else {
-        const existingVideo = overlay.querySelector('video');
+        const existingVideo = logoWrap.querySelector('video.winner-cvm-video');
         if (existingVideo) existingVideo.remove();
+        logoWrap.classList.remove('is-cvm');
+        logo.classList.remove('is-cvm');
         logo.style.display = 'block';
       }
 
