@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arnis Scoreboard</title>
+  <style>
+    :root {
+      --bg1: #0b1120;
+      --bg2: #132238;
+      --panel: rgba(15, 23, 42, 0.75);
+      --panel-border: rgba(148, 163, 184, 0.2);
+      --shadow: rgba(15, 23, 42, 0.45);
+      --red: #ef4444;
+      --red-dark: #7f1d1d;
+      --blue: #38bdf8;
+      --blue-dark: #0f3a5d;
+      --gold: #fbbf24;
+      --muted: #cbd5e1;
+      --text: #f8fafc;
+      --field: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 12px;
+      overflow-x: hidden;
+      background: linear-gradient(180deg, #2d2d2f 0%, #1f2124 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      width: min(100%, 1400px);
+      min-height: calc(100vh - 24px);
+      height: auto;
+      margin: 0 auto;
+      padding: 16px 18px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 18px;
+      background: rgba(10, 18, 31, 0.94);
+      box-shadow: 0 18px 42px rgba(2, 6, 23, 0.25);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 14px;
+      overflow: visible;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 0;
+      flex-wrap: nowrap;
+      min-height: 92px;
+    }
+
+    .status-pill {
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #a7f3d0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      flex: 1;
+      text-align: center;
+      font-size: clamp(3rem, 4.5vw, 7rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 900;
+      line-height: 0.9;
+      white-space: nowrap;
+      color: #f1f5f9;
+    }
+
+    .round {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 0 12px;
+      min-width: 170px;
+      white-space: nowrap;
+      border-radius: 12px;
+    }
+
+    .college-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 auto 14px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      opacity: 0.92;
+      pointer-events: auto;
+      z-index: 3;
+      height: auto;
+      overflow: visible;
+    }
+
+    .college-field label {
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.8);
+      white-space: nowrap;
+    }
+
+    .advantage-banner {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translate(-50%, -120%);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: white;
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid rgba(255,255,255,0.2);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+      opacity: 0;
+      animation: slideInOut 3s ease-in-out forwards;
+      white-space: nowrap;
+    }
+
+    .team.red .advantage-banner { background: rgba(239,68,68,0.92); }
+    .team.blue .advantage-banner { background: rgba(56,189,248,0.92); }
+
+    @keyframes slideInOut {
+      0% { opacity: 0; transform: translate(-50%, -120%); }
+      12% { opacity: 1; transform: translate(-50%, 0); }
+      80% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -120%); }
+    }
+
+    .college-field input,
+    .round input,
+    .team-name,
+    .timer-controls input {
+      width: 88px;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      font-size: 1.1rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .round input {
+      width: 70px;
+      padding: 10px 8px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .college-field input {
+      width: 92px;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .round input:focus,
+    .team-name:focus,
+    .timer-controls input:focus,
+    input[type=file]:focus-visible,
+    button:focus-visible {
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+      border-color: rgba(56, 189, 248, 0.8);
+    }
+
+    .match-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.85fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+      flex: 1;
+      min-height: 520px;
+      margin-top: 6px;
+      padding: 0 4px;
+    }
+
+    .teams {
+      display: contents;
+    }
+
+    .team {
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      padding: 16px 18px 14px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(127, 29, 29, 0.9), rgba(69, 10, 10, 0.92));
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
+      height: 100%;
+      max-height: 640px;
+    }
+
+    .team::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.15), var(--red), rgba(255,255,255,0.15));
+    }
+
+    .team.blue {
+      background: linear-gradient(180deg, rgba(3, 105, 161, 0.9), rgba(8, 47, 73, 0.92));
+      border-color: rgba(125, 211, 252, 0.45);
+    }
+
+    .team.blue::before {
+      background: linear-gradient(90deg, rgba(255,255,255,0.15), var(--blue), rgba(255,255,255,0.15));
+    }
+
+    .team-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .team-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      background: rgba(255,255,255,0.12);
+      color: var(--text);
+      text-transform: uppercase;
+    }
+
+    .team-name {
+      width: min(100%, 260px);
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.35);
+      border-color: rgba(255,255,255,0.1);
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .photo {
+      width: min(120px, 26vw);
+      height: min(120px, 26vw);
+      border-radius: 50%;
+      border: 2px dashed rgba(226, 232, 240, 0.45);
+      display: grid;
+      place-items: center;
+      margin: 0 auto 14px;
+      background: rgba(15, 23, 42, 0.55);
+      color: rgba(226, 232, 240, 0.92);
+      font-size: 0.82rem;
+      line-height: 1.35;
+      text-align: center;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      padding: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .photo.is-cvm {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .photo img.is-cvm {
+      object-fit: cover;
+      object-position: center;
+      padding: 0;
+      background: transparent;
+    }
+
+    input[type=file] {
+      display: block;
+      max-width: 240px;
+      margin: 0 auto 16px;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 12px;
+    }
+
+    .score-wrap {
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-label {
+      color: rgba(248, 250, 252, 0.84);
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .score {
+      font-size: clamp(4.5rem, 7vw, 8.5rem);
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      margin: 10px 0 0;
+      text-shadow: 0 0 20px rgba(255,255,255,0.15);
+    }
+
+    .score-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin: 4px;
+      background: var(--red);
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      filter: grayscale(0.2);
+    }
+
+    .team.blue button {
+      background: var(--blue);
+    }
+
+    .secondary,
+    .muted {
+      background: rgba(71, 85, 105, 0.9);
+    }
+
+    .timer {
+      text-align: center;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.78);
+      padding: 16px 14px 12px;
+      margin-bottom: 0;
+      box-shadow: inset 0 0 18px rgba(251, 191, 36, 0.08), 0 0 18px rgba(251, 191, 36, 0.12);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 220px;
+      width: 100%;
+      height: 100%;
+      max-height: 640px;
+    }
+
+    .timer-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    #clock {
+      font-size: clamp(2.4rem, 4vw, 5rem);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      text-shadow: 0 0 12px rgba(251, 191, 36, 0.4), 0 0 24px rgba(251, 191, 36, 0.2);
+    }
+
+    .timer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 8px 0 6px;
+      flex-wrap: wrap;
+    }
+
+    .timer-controls label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .timer-controls input {
+      width: 72px;
+      font-size: 1rem;
+    }
+
+    .timer-controls span {
+      font-size: 2rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .timer-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .timer .accent {
+      background: var(--gold);
+      color: #111827;
+    }
+
+    .winner-video-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.98) 36%, rgba(2, 6, 23, 1) 100%);
+      z-index: 95;
+      overflow: hidden;
+      padding: 0;
+      isolation: isolate;
+    }
+
+    .winner-video-overlay.show {
+      display: flex;
+      animation: fadeIn 0.2s ease forwards;
+    }
+
+    .winner-stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      border-radius: 0;
+      background: radial-gradient(circle at center, rgba(17, 24, 39, 0.82) 0%, rgba(2, 6, 23, 0.96) 44%, rgba(2, 6, 23, 1) 100%);
+      box-shadow: none;
+      overflow: hidden;
+      transform: scale(1);
+      aspect-ratio: 16 / 9;
+    }
+
+    .winner-video-overlay.show .winner-stage {
+      animation: stageIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .winner-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff9c4 0%, #fbbf24 48%, rgba(251,191,36,0) 100%);
+      box-shadow: 0 0 18px rgba(251,191,36,0.9);
+      opacity: 0;
+      animation: particleFloat 4s ease-in-out infinite;
+    }
+
+    .light-rays {
+      position: absolute;
+      inset: 8% 10%;
+      background: linear-gradient(90deg, transparent 0%, rgba(250,204,21,0.28) 18%, rgba(255,255,255,0.8) 50%, rgba(250,204,21,0.22) 82%, transparent 100%);
+      transform: translateX(-120%) rotate(18deg);
+      filter: blur(20px);
+      opacity: 0.9;
+      z-index: 0;
+    }
+
+    .winner-video-overlay.show .light-rays {
+      animation: sweepLight 1.8s ease-in-out 0.4s forwards;
+    }
+
+    .flare {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(250,204,21,0.25) 22%, rgba(250,204,21,0) 70%);
+      filter: blur(12px);
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .flare-1 { top: 9%; left: 20%; }
+    .flare-2 { bottom: 10%; right: 18%; }
+
+    .winner-video-overlay.show .flare {
+      animation: flarePulse 1.8s ease-in-out 0.5s forwards;
+    }
+
+    .winner-logo-wrap {
+      position: relative;
+      width: min(38vw, 500px);
+      height: min(38vw, 500px);
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transform: scale(0.18) rotateX(72deg) rotateY(-28deg) rotateZ(-12deg) translateY(80px);
+      z-index: 2;
+      border-radius: 50%;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+      padding: 7%;
+      box-shadow: inset 0 0 0 2px rgba(250, 204, 21, 0.16);
+    }
+
+    .winner-logo-wrap.is-cvm {
+      width: min(42vw, 560px);
+      height: min(42vw, 560px);
+      padding: 4%;
+      background: rgba(255,255,255,0.02);
+      border: 3px solid rgba(250, 204, 21, 0.18);
+      box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.04), inset 0 0 30px rgba(250, 204, 21, 0.06);
+    }
+
+    .winner-video-overlay.show .winner-logo-wrap {
+      animation: logoReveal 1.8s cubic-bezier(0.17, 0.84, 0.44, 1) 0.15s forwards;
+    }
+
+    .winner-logo-wrap::before {
+      content: "";
+      position: absolute;
+      inset: -18%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(250,204,21,0.62) 0%, rgba(250,204,21,0.18) 28%, rgba(250,204,21,0) 70%);
+      filter: blur(16px);
+      transform: scale(1.15);
+      z-index: 0;
+    }
+
+    .winner-logo {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 50%;
+      display: block;
+      filter: drop-shadow(0 18px 38px rgba(251,191,36,0.25));
+      background: rgba(255,255,255,0.02);
+      z-index: 2;
+      max-width: 100%;
+      max-height: 100%;
+      margin: 0 auto;
+    }
+
+    .winner-logo.is-cvm {
+      object-fit: contain;
+      object-position: center;
+      transform: scale(1.04);
+      background: transparent;
+      border-radius: 50%;
+      padding: 2%;
+    }
+
+    .winner-copy {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 26px;
+      opacity: 0;
+      transform: translateY(18px);
+      text-align: center;
+    }
+
+    .winner-video-overlay.show .winner-copy {
+      animation: textReveal 0.7s ease 1.6s forwards;
+    }
+
+    .winner-title {
+      font-size: clamp(3.7rem, 8vw, 8rem);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #f8fafc;
+      text-shadow: 0 0 18px rgba(250,204,21,0.42), 0 16px 28px rgba(0,0,0,0.35);
+      line-height: 0.9;
+      transform: perspective(500px) rotateX(18deg);
+    }
+
+    .winner-name {
+      margin-top: 18px;
+      font-size: clamp(1.6rem, 4vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f8fafc;
+      text-shadow: 0 0 18px rgba(250,204,21,0.2), 0 8px 22px rgba(15, 23, 42, 0.7);
+    }
+
+    .winner-score {
+      margin-top: 10px;
+      font-size: clamp(0.9rem, 2vw, 1.5rem);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(248,250,252,0.9);
+      opacity: 0.96;
+    }
+
+    .winner-subtitle {
+      margin-top: 14px;
+      font-size: clamp(1rem, 2.5vw, 2rem);
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(248,250,252,0.88);
+      text-shadow: 0 0 14px rgba(250,204,21,0.25);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes stageIn {
+      0% { opacity: 0; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes logoReveal {
+      0% {
+        opacity: 0;
+        transform: scale(0.18) rotateX(70deg) rotateY(-28deg) rotateZ(-12deg) translateY(80px);
+        filter: blur(12px) brightness(0.4);
+      }
+      25% {
+        opacity: 1;
+      }
+      52% {
+        opacity: 1;
+        transform: scale(1.16) rotateX(0deg) rotateY(0deg) rotateZ(3deg) translateY(-8px);
+        filter: blur(0) brightness(1.2);
+      }
+      68% {
+        opacity: 1;
+        transform: scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0);
+      }
+      80% {
+        opacity: 1;
+        transform: scale(1.04) translateY(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1.06) translateY(0);
+        filter: blur(0) brightness(1);
+      }
+    }
+
+    @keyframes textReveal {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes sweepLight {
+      0% { transform: translateX(-120%) rotate(18deg); opacity: 0.1; }
+      25% { opacity: 0.9; }
+      55% { opacity: 0.75; }
+      100% { transform: translateX(140%) rotate(18deg); opacity: 0.2; }
+    }
+
+    @keyframes flarePulse {
+      0%, 100% { opacity: 0; transform: scale(0.7); }
+      20% { opacity: 0.45; }
+      50% { opacity: 0.9; transform: scale(1.2); }
+      75% { opacity: 0.55; }
+    }
+
+    @keyframes particleFloat {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.6); }
+      20% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) scale(1.4); }
+    }
+
+    .reset-btn {
+      display: block;
+      margin: 0 auto;
+      min-width: 180px;
+      background: rgba(71, 85, 105, 0.95);
+      margin-top: 0;
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 8px; }
+      main { min-height: calc(100vh - 16px); padding: 12px 10px 8px; }
+      .match-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        overflow: visible;
+      }
+      .timer {
+        order: 2;
+        min-width: 0;
+      }
+      .team.red { order: 1; }
+      .team.blue { order: 3; }
+      .team { padding: 8px 10px; }
+      .timer-controls { gap: 4px; }
+      .timer-actions button { padding: 8px 10px; }
+    }
+
+    @media (max-width: 700px) {
+      .topbar { justify-content: center; }
+      h1 { font-size: clamp(1.5rem, 5vw, 2.3rem); }
+      .round { margin: 0; }
+      .status-pill { font-size: 10px; }
+      .score { font-size: clamp(3rem, 10vw, 5rem); }
+      .team-name { width: 100%; }
+      .photo {
+        width: min(94px, 32vw);
+        height: min(94px, 32vw);
+      }
+      .college-field {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .timer-controls label {
+        font-size: 0.75rem;
+      }
+      .timer-controls input {
+        width: 58px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="winner-video-overlay" id="winnerVideoOverlay">
+    <div class="winner-stage">
+      <div class="winner-particles" aria-hidden="true">
+        <span class="particle" style="left: 12%; top: 18%; --dx: 40px; --dy: -80px; animation-delay: 0.1s;"></span>
+        <span class="particle" style="left: 24%; top: 32%; --dx: -60px; --dy: -110px; animation-delay: 0.5s;"></span>
+        <span class="particle" style="left: 30%; top: 16%; --dx: 80px; --dy: 90px; animation-delay: 0.9s;"></span>
+        <span class="particle" style="left: 42%; top: 24%; --dx: -90px; --dy: 80px; animation-delay: 1.2s;"></span>
+        <span class="particle" style="left: 52%; top: 18%; --dx: 70px; --dy: -100px; animation-delay: 0.7s;"></span>
+        <span class="particle" style="left: 65%; top: 30%; --dx: -80px; --dy: 100px; animation-delay: 1.8s;"></span>
+        <span class="particle" style="left: 78%; top: 22%; --dx: 100px; --dy: -120px; animation-delay: 0.4s;"></span>
+        <span class="particle" style="left: 18%; top: 62%; --dx: 50px; --dy: -80px; animation-delay: 1s;"></span>
+        <span class="particle" style="left: 38%; top: 70%; --dx: -110px; --dy: -90px; animation-delay: 1.4s;"></span>
+        <span class="particle" style="left: 62%; top: 72%; --dx: 120px; --dy: -92px; animation-delay: 1.9s;"></span>
+        <span class="particle" style="left: 88%; top: 58%; --dx: -90px; --dy: -110px; animation-delay: 0.8s;"></span>
+        <span class="particle" style="left: 50%; top: 48%; --dx: 0px; --dy: -140px; animation-delay: 1.6s;"></span>
+      </div>
+      <div class="light-rays"></div>
+      <div class="flare flare-1"></div>
+      <div class="flare flare-2"></div>
+      <div class="winner-logo-wrap">
+        <img class="winner-logo" id="winnerHeroLogo" alt="Winner college logo">
+      </div>
+      <div class="winner-copy">
+        <div class="winner-title" id="winnerTitle">WINNER!</div>
+        <div class="winner-name" id="winnerName">Winning Team</div>
+        <div class="winner-score" id="winnerScore">Final Score: 0 - 0</div>
+        <div class="winner-subtitle">CONGRATULATIONS!</div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <header class="topbar">
+      <div class="status-pill">Live Match</div>
+      <h1>Arnis Scoreboard</h1>
+      <div class="round">
+        <label for="round">Round</label>
+        <input id="round" type="number" min="1" value="1" aria-label="Round number">
+      </div>
+    </header>
+
+    <div class="match-row">
+      <section class="teams">
+        <article class="team red">
+          <div class="advantage-banner" id="redAdvantage">Advantage</div>
+          <div class="team-header">
+            <span class="team-tag">Red</span>
+            <input class="team-name" type="text" value="RED TEAM" aria-label="Red team name">
+          </div>
+          <div class="college-field">
+            <label for="redCollege">College</label>
+            <input id="redCollege" type="text" value="CET" aria-label="Red team college code">
+          </div>
+          <div class="photo" id="redPhoto">Team<br>photo</div>
+          <div class="score-wrap">
+            <div class="score-label">Score</div>
+            <div class="score" id="redScore">0</div>
+          </div>
+          <div class="score-controls">
+            <button onclick="scorePoint('red', 1)">+ Point</button>
+            <button class="secondary" onclick="scorePoint('red', -1)">− Point</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="timer" aria-label="Match timer">
+        <div class="timer-label">Match time</div>
+        <div id="clock">03:00</div>
+        <div class="timer-controls">
+          <label>Min <input id="timerMinutes" type="number" min="0" max="59" value="3" aria-label="Timer minutes"></label>
+          <span>:</span>
+          <label>Sec <input id="timerSeconds" type="number" min="0" max="59" value="0" aria-label="Timer seconds"></label>
+        </div>
+        <div class="timer-actions">
+          <button class="accent" onclick="setTimer()">Set</button>
+          <button onclick="startTimer()">Start</button>
+          <button class="secondary" onclick="pauseTimer()">Pause</button>
+          <button class="muted" onclick="resetTimer()">Reset</button>
+        </div>
+      </section>
+
+      <section class="teams">
+        <article class="team blue">
+          <div class="advantage-banner" id="blueAdvantage">Advantage</div>
+          <div class="team-header">
+            <span class="team-tag">Blue</span>
+            <input class="team-name" type="text" value="BLUE TEAM" aria-label="Blue team name">
+          </div>
+          <div class="college-field">
+            <label for="blueCollege">College</label>
+            <input id="blueCollege" type="text" value="CAF" aria-label="Blue team college code">
+          </div>
+          <div class="photo" id="bluePhoto">Team<br>photo</div>
+          <div class="score-wrap">
+            <div class="score-label">Score</div>
+            <div class="score" id="blueScore">0</div>
+          </div>
+          <div class="score-controls">
+            <button onclick="scorePoint('blue', 1)">+ Point</button>
+            <button class="secondary" onclick="scorePoint('blue', -1)">− Point</button>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <button class="reset-btn" onclick="resetScores()">Reset scores</button>
+  </main>
+
+  <script>
+    const scores = { red: 0, blue: 0 };
+    const collegeLogos = {
+      CAF: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CAF.png',
+      CAS: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CAS.jpg',
+      CBM: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CBM.jpg',
+      CED: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CED.jpg',
+      CET: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CET.jpg',
+      CVM: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CVM.jpg',
+      CVVM: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CVVM.png'
+    };
+
+    let secondsLeft = 180;
+    let timer = null;
+    let matchFinished = false;
+    const winnerVideoPath = 'file:///C:/Users/Jomel/Downloads/tarlac_agricultural_university_3d_logo_animation.mp4';
+    const cvmVideoPath = 'file:///C:/Users/Jomel/AppData/Local/Temp/47f6d5a7-dad2-4703-9a45-00ad583e5abd.mp4';
+
+    function getWinnerByScore() {
+      if (scores.red === scores.blue) return 'draw';
+      return scores.red > scores.blue ? 'red' : 'blue';
+    }
+
+    function getCurrentWinner() {
+      if (scores.red >= 7 || scores.blue >= 7) {
+        return scores.red === scores.blue ? 'draw' : scores.red > scores.blue ? 'red' : 'blue';
+      }
+      return null;
+    }
+
+    function handleMatchEnd() {
+      if (matchFinished) return;
+      matchFinished = true;
+      pauseTimer();
+      updateScoreButtonsState();
+
+      const result = getWinnerByScore();
+      const titleEl = document.getElementById('winnerTitle');
+      if (result === 'draw') {
+        titleEl.textContent = 'DRAW';
+      } else {
+        titleEl.textContent = 'WINNER!';
+      }
+      showWinnerOverlay(true);
+    }
+
+    function getTeamDisplayName(team) {
+      const input = document.querySelector('.team.' + team + ' .team-name');
+      const rawName = (input && input.value ? input.value.trim() : '') || (team === 'red' ? 'Red Team' : 'Blue Team');
+      return rawName || (team === 'red' ? 'Red Team' : 'Blue Team');
+    }
+
+    function updateWinnerOverlayInfo() {
+      const result = getWinnerByScore();
+      const nameEl = document.getElementById('winnerName');
+      const scoreEl = document.getElementById('winnerScore');
+      const titleEl = document.getElementById('winnerTitle');
+
+      if (result === 'draw') {
+        titleEl.textContent = 'DRAW';
+        nameEl.textContent = 'TIE';
+        scoreEl.textContent = 'Final Score: ' + scores.red + ' - ' + scores.blue;
+        return;
+      }
+
+      const winnerName = getTeamDisplayName(result);
+      titleEl.textContent = 'WINNER!';
+      nameEl.textContent = winnerName;
+      scoreEl.textContent = 'Final Score: ' + scores.red + ' - ' + scores.blue;
+      nameEl.setAttribute('data-team', result === 'red' ? 'Red' : 'Blue');
+    }
+
+    function revealWinnerIfNeeded(force = false) {
+      const winner = getCurrentWinner();
+      const result = getWinnerByScore();
+      const overlay = document.getElementById('winnerVideoOverlay');
+      const logo = document.getElementById('winnerHeroLogo');
+      const logoWrap = logo.parentElement;
+
+      if (!winner && !force) {
+        overlay.classList.remove('show');
+        return;
+      }
+
+      if (!force && Math.abs(scores.red - scores.blue) < 7) {
+        overlay.classList.remove('show');
+        return;
+      }
+
+      updateWinnerOverlayInfo();
+
+      const winningTeam = result === 'draw' ? 'red' : result;
+      const code = (document.getElementById(winningTeam + 'College').value || '').trim().toUpperCase() || (winningTeam === 'red' ? 'RED' : 'BLUE');
+      const src = collegeLogos[code] || collegeLogos.CET;
+      logo.src = src;
+      logo.alt = code + ' logo';
+      logo.classList.toggle('is-cvm', code === 'CVM');
+      logoWrap.classList.toggle('is-cvm', code === 'CVM');
+
+      if (code === 'CVM') {
+        const video = document.createElement('video');
+        video.src = cvmVideoPath;
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.loop = false;
+        video.style.position = 'absolute';
+        video.style.inset = '0';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'cover';
+        video.style.opacity = '0';
+        video.style.transition = 'opacity 0.3s ease';
+
+        const existingVideo = overlay.querySelector('video');
+        if (existingVideo) existingVideo.remove();
+        overlay.appendChild(video);
+        requestAnimationFrame(() => {
+          video.style.opacity = '1';
+        });
+        video.play().catch(() => {});
+      }
+
+      overlay.classList.remove('show');
+      void overlay.offsetWidth;
+      overlay.classList.add('show');
+
+      setTimeout(() => {
+        overlay.classList.remove('show');
+      }, 5600);
+    }
+
+    function updateTeamCollegeLogo(team) {
+      const input = document.getElementById(team + 'College');
+      const photo = document.getElementById(team + 'Photo');
+      const code = (input.value || '').trim().toUpperCase();
+      const src = collegeLogos[code];
+
+      photo.classList.toggle('is-cvm', code === 'CVM');
+
+      if (src) {
+        photo.innerHTML = '<img src="' + src + '" class="' + (code === 'CVM' ? 'is-cvm' : '') + '" alt="' + code + ' logo">';
+      } else {
+        photo.innerHTML = 'Team<br>photo';
+      }
+
+      updateAdvantageDisplay();
+    }
+
+    function updateAdvantageDisplay() {
+      const redBanner = document.getElementById('redAdvantage');
+      const blueBanner = document.getElementById('blueAdvantage');
+
+      redBanner.style.display = 'none';
+      blueBanner.style.display = 'none';
+      redBanner.style.animation = 'none';
+      blueBanner.style.animation = 'none';
+
+      if (scores.red > scores.blue) {
+        redBanner.textContent = (document.getElementById('redCollege').value || '').trim().toUpperCase() || 'RED';
+        redBanner.style.display = 'block';
+        redBanner.style.animation = 'slideInOut 3s ease-in-out forwards';
+      } else if (scores.blue > scores.red) {
+        blueBanner.textContent = (document.getElementById('blueCollege').value || '').trim().toUpperCase() || 'BLUE';
+        blueBanner.style.display = 'block';
+        blueBanner.style.animation = 'slideInOut 3s ease-in-out forwards';
+      }
+    }
+
+    function showWinnerOverlay(force = false) {
+      revealWinnerIfNeeded(force);
+    }
+
+    function renderTimer() {
+      const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
+      const seconds = String(secondsLeft % 60).padStart(2, '0');
+      document.getElementById('clock').textContent = minutes + ':' + seconds;
+    }
+
+    function updateScoreButtonsState() {
+      const redPlus = document.querySelector(".team.red button:first-of-type");
+      const redMinus = document.querySelector(".team.red .secondary");
+      const bluePlus = document.querySelector(".team.blue button:first-of-type");
+      const blueMinus = document.querySelector(".team.blue .secondary");
+
+      const disableAll = matchFinished || scores.red >= 7 || scores.blue >= 7;
+
+      if (redPlus) redPlus.disabled = disableAll;
+      if (redMinus) redMinus.disabled = disableAll;
+      if (bluePlus) bluePlus.disabled = disableAll;
+      if (blueMinus) blueMinus.disabled = disableAll;
+    }
+
+    function finalizeMatchIfNeeded() {
+      if (matchFinished) return;
+
+      if (scores.red >= 7 || scores.blue >= 7) {
+        handleMatchEnd();
+      }
+    }
+
+    function scorePoint(team, change) {
+      if (matchFinished) return;
+
+      const nextValue = scores[team] + change;
+      if (nextValue < 0) {
+        return;
+      }
+
+      if (scores[team] >= 7) {
+        handleMatchEnd();
+        return;
+      }
+
+      scores[team] = Math.min(7, nextValue);
+      document.getElementById(team + 'Score').textContent = scores[team];
+      updateAdvantageDisplay();
+      updateScoreButtonsState();
+
+      finalizeMatchIfNeeded();
+    }
+
+    function selectPhoto(event, id) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = document.createElement('img');
+        img.src = reader.result;
+        img.alt = 'Team photo';
+        const container = document.getElementById(id);
+        container.replaceChildren(img);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setTimer() {
+      pauseTimer();
+      matchFinished = false;
+      const minutes = Math.max(0, Number(document.getElementById('timerMinutes').value) || 0);
+      const seconds = Math.max(0, Math.min(59, Number(document.getElementById('timerSeconds').value) || 0));
+      secondsLeft = minutes * 60 + seconds;
+      document.getElementById('timerMinutes').value = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
+      document.getElementById('timerSeconds').value = String(secondsLeft % 60).padStart(2, '0');
+      renderTimer();
+    }
+
+    function endMatchByTime() {
+      if (matchFinished) return;
+      handleMatchEnd();
+    }
+
+    function startTimer() {
+      if (matchFinished || timer !== null || secondsLeft <= 0) return;
+      timer = setInterval(() => {
+        secondsLeft = Math.max(0, secondsLeft - 1);
+        renderTimer();
+
+        if (secondsLeft === 0) {
+          endMatchByTime();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      matchFinished = false;
+      const minutes = Number(document.getElementById('timerMinutes').value) || 2;
+      const seconds = Number(document.getElementById('timerSeconds').value) || 0;
+      secondsLeft = Math.max(0, minutes * 60 + seconds);
+      renderTimer();
+    }
+
+    function resetScores() {
+      pauseTimer();
+      scores.red = 0;
+      scores.blue = 0;
+      matchFinished = false;
+      document.getElementById('redScore').textContent = '0';
+      document.getElementById('blueScore').textContent = '0';
+      document.getElementById('winnerVideoOverlay').classList.remove('show');
+      document.getElementById('winnerName').textContent = 'Winning Team';
+      document.getElementById('winnerScore').textContent = 'Final Score: 0 - 0';
+      document.getElementById('winnerTitle').textContent = 'WINNER!';
+      updateAdvantageDisplay();
+      updateScoreButtonsState();
+    }
+
+    document.getElementById('redCollege').addEventListener('input', () => updateTeamCollegeLogo('red'));
+    document.getElementById('blueCollege').addEventListener('input', () => updateTeamCollegeLogo('blue'));
+    updateTeamCollegeLogo('red');
+    updateTeamCollegeLogo('blue');
+    updateAdvantageDisplay();
+    updateScoreButtonsState();
+    renderTimer();
+  </script>
+</body>
+</html>
