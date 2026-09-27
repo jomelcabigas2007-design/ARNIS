@@ -923,21 +923,27 @@
 
   <script>
     const scores = { red: 0, blue: 0 };
+
+    function makeCollegeLogoUrl(code) {
+      const value = (code || '').trim().toUpperCase();
+      return 'https://placehold.co/220x220/0f172a/f8fafc?text=' + encodeURIComponent(value || 'TEAM');
+    }
+
     const collegeLogos = {
-      CAF: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CAF.png',
-      CAS: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CAS.jpg',
-      CBM: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CBM.jpg',
-      CED: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CED.jpg',
-      CET: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CET.jpg',
-      CVM: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CVM.jpg',
-      CVVM: 'file:///C:/Users/Jomel/Desktop/COLLEGES/CVVM.png'
+      CAF: makeCollegeLogoUrl('CAF'),
+      CAS: makeCollegeLogoUrl('CAS'),
+      CBM: makeCollegeLogoUrl('CBM'),
+      CED: makeCollegeLogoUrl('CED'),
+      CET: makeCollegeLogoUrl('CET'),
+      CVM: makeCollegeLogoUrl('CVM'),
+      CVVM: makeCollegeLogoUrl('CVVM')
     };
 
     let secondsLeft = 180;
     let timer = null;
     let matchFinished = false;
-    const winnerVideoPath = 'file:///C:/Users/Jomel/Downloads/tarlac_agricultural_university_3d_logo_animation.mp4';
-    const cvmVideoPath = 'file:///C:/Users/Jomel/AppData/Local/Temp/47f6d5a7-dad2-4703-9a45-00ad583e5abd.mp4';
+    const winnerVideoPath = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+    const cvmVideoPath = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
     function getWinnerByScore() {
       if (scores.red === scores.blue) return 'draw';
