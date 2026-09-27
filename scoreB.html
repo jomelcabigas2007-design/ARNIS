@@ -945,6 +945,7 @@
       CVVM: './college-assets/CVM.jpg'
     };
 
+    const winnerVideoPath = 'file:///C:/Users/Jomel/Downloads/tarlac_agricultural_university_3d_logo_animation.mp4';
     const elements = {};
 
     function cacheElements() {
@@ -1029,6 +1030,35 @@
       logo.alt = collegeCode + ' logo';
       logo.classList.toggle('is-cvm', collegeCode === 'CVM');
       logoWrap.classList.toggle('is-cvm', collegeCode === 'CVM');
+
+      if (collegeCode === 'CVM') {
+        const video = document.createElement('video');
+        video.src = winnerVideoPath;
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.loop = true;
+        video.controls = false;
+        video.style.position = 'absolute';
+        video.style.inset = '0';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'cover';
+        video.style.zIndex = '0';
+        video.style.opacity = '1';
+        video.style.borderRadius = '0';
+
+        const existingVideo = overlay.querySelector('video');
+        if (existingVideo) existingVideo.remove();
+        overlay.appendChild(video);
+        video.play().catch(() => {});
+
+        logo.style.display = 'none';
+      } else {
+        const existingVideo = overlay.querySelector('video');
+        if (existingVideo) existingVideo.remove();
+        logo.style.display = 'block';
+      }
 
       overlay.classList.remove('show');
       void overlay.offsetWidth;
