@@ -583,8 +583,8 @@
       opacity: 0;
       transform: scale(0.18) rotateX(72deg) rotateY(-28deg) rotateZ(-12deg) translateY(80px);
       z-index: 2;
-      border-radius: 28px;
-      overflow: visible;
+      border-radius: 22px;
+      overflow: hidden;
       background: rgba(255,255,255,0.02);
       padding: 0;
       box-shadow: inset 0 0 0 2px rgba(250, 204, 21, 0.16);
@@ -605,8 +605,8 @@
     .winner-logo-wrap::before {
       content: "";
       position: absolute;
-      inset: -10% -8%;
-      border-radius: 50%;
+      inset: -12% -10%;
+      border-radius: 24px;
       background: radial-gradient(circle, rgba(250,204,21,0.62) 0%, rgba(250,204,21,0.18) 28%, rgba(250,204,21,0) 70%);
       filter: blur(16px);
       transform: scale(1.15);
@@ -625,7 +625,7 @@
       background: rgba(255,255,255,0.02);
       z-index: 2;
       margin: 0 auto;
-      border-radius: 26px;
+      border-radius: 20px;
     }
 
     .winner-logo.is-cvm {
@@ -634,7 +634,7 @@
       object-position: center;
       transform: scale(1.04);
       background: transparent;
-      border-radius: 30px;
+      border-radius: 24px;
       padding: 2%;
     }
 
@@ -945,8 +945,6 @@
     };
 
     const winnerVideoPath = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
-    const cvmVideoPath = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
-
     const elements = {};
 
     function cacheElements() {
@@ -1031,30 +1029,6 @@
       logo.alt = collegeCode + ' logo';
       logo.classList.toggle('is-cvm', collegeCode === 'CVM');
       logoWrap.classList.toggle('is-cvm', collegeCode === 'CVM');
-
-      if (collegeCode === 'CVM') {
-        const video = document.createElement('video');
-        video.src = cvmVideoPath;
-        video.autoplay = true;
-        video.muted = true;
-        video.playsInline = true;
-        video.loop = false;
-        video.style.position = 'absolute';
-        video.style.inset = '0';
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.style.objectFit = 'cover';
-        video.style.opacity = '0';
-        video.style.transition = 'opacity 0.3s ease';
-
-        const existingVideo = overlay.querySelector('video');
-        if (existingVideo) existingVideo.remove();
-        overlay.appendChild(video);
-        requestAnimationFrame(() => {
-          video.style.opacity = '1';
-        });
-        video.play().catch(() => {});
-      }
 
       overlay.classList.remove('show');
       void overlay.offsetWidth;
