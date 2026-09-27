@@ -959,7 +959,7 @@
       CVVM: './college-assets/CVM.jpg'
     };
 
-    const winnerVideoPath = './tarlac_agricultural_university_3d_logo_animation.mp4';
+    const winnerVideoPath = './79a2d1ca-e962-44ae-b2b0-de6a85f4be12.mp4';
     const cvmFallbackLogo = './college-assets/CVM.jpg';
     const elements = {};
 
@@ -1074,6 +1074,8 @@
           logo.classList.add('is-cvm');
           video.style.display = 'none';
         });
+
+        logo.style.display = 'none';
       } else {
         const existingVideo = logoWrap.querySelector('video.winner-cvm-video');
         if (existingVideo) existingVideo.remove();
