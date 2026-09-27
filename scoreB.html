@@ -1019,6 +1019,26 @@
       elements.winnerScore.textContent = 'Final Score: ' + state.scores.red + ' - ' + state.scores.blue;
     }
 
+    function clearWinnerOverlayMedia() {
+      const logo = elements.winnerHeroLogo;
+      if (!logo) return;
+
+      const logoWrap = logo.parentElement;
+      if (logoWrap) {
+        const existingVideo = logoWrap.querySelector('video.winner-cvm-video');
+        if (existingVideo) {
+          existingVideo.pause();
+          existingVideo.src = '';
+          existingVideo.remove();
+        }
+        logoWrap.classList.remove('is-cvm');
+      }
+
+      logo.removeAttribute('src');
+      logo.classList.remove('is-cvm');
+      logo.style.display = 'block';
+    }
+
     function revealWinnerIfNeeded(force = false) {
       const winner = getCurrentWinner();
       const result = getWinnerByScore();
@@ -1028,6 +1048,7 @@
 
       if ((!winner && !force) || !overlay || !logo || !logoWrap) {
         overlay && overlay.classList.remove('show');
+        clearWinnerOverlayMedia();
         return;
       }
 
@@ -1230,6 +1251,7 @@
       state.scores.blue = 0;
       state.matchFinished = false;
       renderScores();
+      clearWinnerOverlayMedia();
       elements.winnerOverlay.classList.remove('show');
       elements.winnerName.textContent = 'Winning Team';
       elements.winnerScore.textContent = 'Final Score: 0 - 0';
