@@ -1026,14 +1026,14 @@
       updateWinnerOverlayInfo();
 
       const winningTeam = result === 'draw' ? 'red' : result;
-      const code = ((elements[winningTeam + 'College'] && elements[winningTeam + 'College'].value) || '').trim().toUpperCase() || (winningTeam === 'red' ? 'RED' : 'BLUE');
-      const src = collegeLogos[code] || collegeLogos.CET;
+      const collegeCode = ((elements[winningTeam + 'College'] && elements[winningTeam + 'College'].value) || '').trim().toUpperCase() || (winningTeam === 'red' ? 'RED' : 'BLUE');
+      const src = collegeLogos[collegeCode] || collegeLogos.CET;
       logo.src = src;
-      logo.alt = code + ' logo';
-      logo.classList.toggle('is-cvm', code === 'CVM');
-      logoWrap.classList.toggle('is-cvm', code === 'CVM');
+      logo.alt = collegeCode + ' logo';
+      logo.classList.toggle('is-cvm', collegeCode === 'CVM');
+      logoWrap.classList.toggle('is-cvm', collegeCode === 'CVM');
 
-      if (code === 'CVM') {
+      if (collegeCode === 'CVM') {
         const video = document.createElement('video');
         video.src = cvmVideoPath;
         video.autoplay = true;
@@ -1211,10 +1211,11 @@
       updateScoreButtonsState();
     }
 
-    function bindEvents() {
+    function initApp() {
+      cacheElements();
       elements.redCollege.addEventListener('input', () => updateTeamCollegeLogo('red'));
       elements.blueCollege.addEventListener('input', () => updateTeamCollegeLogo('blue'));
-      document.querySelector('.accent').addEventListener('click', setTimer);
+      document.querySelector('.timer button.accent').addEventListener('click', setTimer);
       document.querySelector('.team.red button:first-of-type').addEventListener('click', () => scorePoint('red', 1));
       document.querySelector('.team.red .secondary').addEventListener('click', () => scorePoint('red', -1));
       document.querySelector('.team.blue button:first-of-type').addEventListener('click', () => scorePoint('blue', 1));
@@ -1223,11 +1224,6 @@
       document.querySelector('.timer-actions button:nth-of-type(3)').addEventListener('click', pauseTimer);
       document.querySelector('.timer-actions button:nth-of-type(4)').addEventListener('click', resetTimer);
       document.querySelector('.reset-btn').addEventListener('click', resetScores);
-    }
-
-    function initApp() {
-      cacheElements();
-      bindEvents();
       updateTeamCollegeLogo('red');
       updateTeamCollegeLogo('blue');
       renderScores();
