@@ -1041,7 +1041,6 @@
       const winningTeam = result === 'draw' ? 'red' : result;
       const collegeCode = ((elements[winningTeam + 'College'] && elements[winningTeam + 'College'].value) || '').trim().toUpperCase() || (winningTeam === 'red' ? 'RED' : 'BLUE');
       const src = collegeLogos[collegeCode] || collegeLogos.CET;
-      logo.src = src;
       logo.alt = collegeCode + ' logo';
       logo.classList.toggle('is-cvm', collegeCode === 'CVM');
       logoWrap.classList.toggle('is-cvm', collegeCode === 'CVM');
@@ -1077,6 +1076,7 @@
 
         logo.style.display = 'none';
       } else {
+        logo.src = src;
         const existingVideo = logoWrap.querySelector('video.winner-cvm-video');
         if (existingVideo) existingVideo.remove();
         logoWrap.classList.remove('is-cvm');
